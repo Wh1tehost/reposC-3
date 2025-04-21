@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public static class InputValidator
 {
@@ -44,129 +45,146 @@ public static class InputValidator
     }
 
     public static List<int> GetOrderedList(string prompt)
-{
-    while (true)
     {
-        Console.Write(prompt);
-        string input = Console.ReadLine();
-        
-        try
+        while (true)
         {
-            List<int> list = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(int.Parse)
-                                .ToList();
+            Console.Write(prompt);
+            string input = Console.ReadLine();
             
-            // Проверяем упорядоченность
-            for (int i = 0; i < list.Count - 1; i++)
+            try
             {
-                if (list[i] > list[i + 1])
+                string[] parts = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                List<int> list = new List<int>();
+                
+                foreach (string part in parts)
                 {
-                    throw new ArgumentException("Список должен быть упорядочен по возрастанию");
+                    list.Add(int.Parse(part));
+                }
+                
+                for (int i = 0; i < list.Count - 1; i++)
+                {
+                    if (list[i] > list[i + 1])
+                    {
+                        throw new ArgumentException("Список должен быть упорядочен по возрастанию");
+                    }
+                }
+                
+                return list;
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа, разделенные пробелами");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+            }
+        }
+    }
+
+    public static List<int> GetList(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string input = Console.ReadLine();
+            
+            try
+            {
+                string[] parts = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                List<int> list = new List<int>();
+                
+                foreach (string part in parts)
+                {
+                    list.Add(int.Parse(part));
+                }
+                
+                return list;
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: введите целые числа, разделенные пробелами");
+            }
+        }
+    }
+
+    public static List<string> GetStringList(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string input = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                Console.WriteLine("Ошибка: ввод не может быть пустым");
+                continue;
+            }
+
+            string[] parts = input.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+            List<string> result = new List<string>();
+            
+            foreach (string part in parts)
+            {
+                string trimmed = part.Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                {
+                    result.Add(trimmed);
                 }
             }
             
-            return list;
-        }
-        catch (FormatException)
-        {
-            Console.WriteLine("Ошибка: введите целые числа, разделенные пробелами");
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Ошибка: {ex.Message}");
+            return result;
         }
     }
-}
 
-public static List<int> GetList(string prompt)
-{
-    while (true)
+    public static Participant GetParticipant(string prompt)
     {
-        Console.Write(prompt);
-        string input = Console.ReadLine();
-        
-        try
+        while (true)
         {
-            return input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries)
-                      .Select(int.Parse)
-                      .ToList();
-        }
-        catch (FormatException)
-        {
-            Console.WriteLine("Ошибка: введите целые числа, разделенные пробелами");
-        }
-    }
-}
-
-public static List<string> GetStringList(string prompt)
-{
-    while (true)
-    {
-        Console.Write(prompt);
-        string input = Console.ReadLine();
-        
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            Console.WriteLine("Ошибка: ввод не может быть пустым");
-            continue;
-        }
-
-        return input.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
-                   .Select(x => x.Trim())
-                   .Where(x => !string.IsNullOrEmpty(x))
-                   .ToList();
-    }
-}
-
-public static Participant GetParticipant(string prompt)
-{
-    while (true)
-    {
-        Console.Write(prompt);
-        string input = Console.ReadLine();
-        
-        if (string.IsNullOrWhiteSpace(input))
-        {
-            Console.WriteLine("Ошибка: ввод не может быть пустым");
-            continue;
-        }
-
-        string[] parts = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
-        
-        if (parts.Length < 6)
-        {
-            Console.WriteLine("Ошибка: неверный формат ввода. Ожидается: Фамилия Имя балл1 балл2 балл3 балл4");
-            continue;
-        }
-
-        try
-        {
-            int[] scores = new int[4];
-            for (int i = 0; i < 4; i++)
+            Console.Write(prompt);
+            string input = Console.ReadLine();
+            
+            if (string.IsNullOrWhiteSpace(input))
             {
-                scores[i] = int.Parse(parts[i + 2]);
-                if (scores[i] < 0 || scores[i] > 10)
-                {
-                    throw new ArgumentException("Баллы должны быть от 0 до 10");
-                }
+                Console.WriteLine("Ошибка: ввод не может быть пустым");
+                continue;
             }
 
-            return new Participant
+            string[] parts = input.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (parts.Length < 6)
             {
-                LastName = parts[0],
-                FirstName = parts[1],
-                Scores = scores
-            };
-        }
-        catch (FormatException)
-        {
-            Console.WriteLine("Ошибка: баллы должны быть целыми числами");
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Ошибка: {ex.Message}");
+                Console.WriteLine("Ошибка: неверный формат ввода. Ожидается: Фамилия Имя балл1 балл2 балл3 балл4");
+                continue;
+            }
+
+            try
+            {
+                int[] scores = new int[4];
+                for (int i = 0; i < 4; i++)
+                {
+                    scores[i] = int.Parse(parts[i + 2]);
+                    if (scores[i] < 0 || scores[i] > 10)
+                    {
+                        throw new ArgumentException("Баллы должны быть от 0 до 10");
+                    }
+                }
+
+                return new Participant
+                {
+                    LastName = parts[0],
+                    FirstName = parts[1],
+                    Scores = scores
+                };
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Ошибка: баллы должны быть целыми числами");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Ошибка: {ex.Message}");
+            }
         }
     }
 }
-}
-
