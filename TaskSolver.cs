@@ -25,17 +25,21 @@ public static class TaskSolver
             throw new FileNotFoundException($"Файл '{filePath}' не найден.");
         }
         
-        var numbers = File.ReadAllLines(filePath)
-                         .Select(line => int.Parse(line))
-                         .ToList();
-        
-        if (numbers.Count == 0)
+        string[] lines = File.ReadAllLines(filePath);
+        if (lines.Length == 0)
         {
             throw new InvalidOperationException("Файл пуст.");
         }
         
-        int max = numbers.Max();
-        int min = numbers.Min();
+        int max = int.MinValue;
+        int min = int.MaxValue;
+        
+        foreach (string line in lines)
+        {
+            int number = int.Parse(line);
+            if (number > max) max = number;
+            if (number < min) min = number;
+        }
         
         return max - min;
     }
@@ -69,20 +73,29 @@ public static class TaskSolver
             throw new FileNotFoundException($"Файл '{filePath}' не найден.");
         }
         
-        var numbers = File.ReadAllLines(filePath)
-                         .Where(line => !string.IsNullOrWhiteSpace(line))
-                         .SelectMany(line => line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries))
-                         .Select(num => int.Parse(num))
-                         .ToList();
+        string[] lines = File.ReadAllLines(filePath);
+        int min = int.MaxValue;
         
-        if (numbers.Count == 0)
+        foreach (string line in lines)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            
+            string[] parts = line.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string part in parts)
+            {
+                int number = int.Parse(part);
+                if (number < min) min = number;
+            }
+        }
+        
+        if (min == int.MaxValue)
         {
             throw new InvalidOperationException("Файл пуст.");
         }
         
-        return numbers.Min();
+        return min;
     }
-    
+
     // Методы для задачи 3
     public static void GenerateTextFile(string filePath, int lineCount)
     {
@@ -102,7 +115,6 @@ public static class TaskSolver
                 for (int i = 0; i < lineCount; i++)
                 {
                     string line = sampleLines[random.Next(sampleLines.Length)];
-                    // Добавляем случайные пробелы в начале строки с вероятностью 30%
                     if (random.NextDouble() < 0.3)
                     {
                         int spacesCount = random.Next(1, 5);
@@ -126,114 +138,107 @@ public static class TaskSolver
         }
         
         List<string> resultLines = new List<string>();
+        string[] allLines = File.ReadAllLines(sourcePath);
+        
+        foreach (string line in allLines)
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            
+            int firstCharIndex = 0;
+            while (firstCharIndex < line.Length && char.IsWhiteSpace(line[firstCharIndex]))
+            {
+                firstCharIndex++;
+            }
+            
+            if (firstCharIndex < line.Length && 
+                char.ToLower(line[firstCharIndex]) == char.ToLower(startChar))
+            {
+                resultLines.Add(line);
+            }
+        }
+        
+        File.WriteAllLines(destPath, resultLines);
+        return resultLines.Count;
+    }
+
+    // Методы для задачи 4
+    public static void GenerateBinaryFile(string filePath, int count, int minValue, int maxValue)
+    {
+        if (count <= 0)
+        {
+            throw new ArgumentException("Количество чисел должно быть положительным");
+        }
+
+        Random random = new Random();
         
         try
         {
-            // Читаем все строки из файла
-            string[] allLines = File.ReadAllLines(sourcePath);
-            
-            foreach (string line in allLines)
+            using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
             {
-                if (string.IsNullOrWhiteSpace(line))
+                for (int i = 0; i < count; i++)
                 {
-                    continue;
-                }
-                
-                // Находим первый непробельный символ
-                int firstCharIndex = 0;
-                while (firstCharIndex < line.Length && char.IsWhiteSpace(line[firstCharIndex]))
-                {
-                    firstCharIndex++;
-                }
-                
-                if (firstCharIndex < line.Length && 
-                    char.ToLower(line[firstCharIndex]) == char.ToLower(startChar))
-                {
-                    resultLines.Add(line);
+                    int number = random.Next(minValue, maxValue + 1);
+                    writer.Write(number);
                 }
             }
-            
-            // Записываем результат в файл
-            File.WriteAllLines(destPath, resultLines);
-            
-            return resultLines.Count;
         }
         catch (Exception ex)
         {
-            throw new Exception($"Ошибка при обработке файлов: {ex.Message}");
+            throw new Exception($"Ошибка при создании бинарного файла: {ex.Message}");
         }
     }
-
-// Методы для задачи 4
-public static void GenerateBinaryFile(string filePath, int count, int minValue, int maxValue)
-{
-    if (count <= 0)
-    {
-        throw new ArgumentException("Количество чисел должно быть положительным");
-    }
-
-    Random random = new Random();
-    
-    try
-    {
-        using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
-        {
-            for (int i = 0; i < count; i++)
-            {
-                int number = random.Next(minValue, maxValue + 1);
-                writer.Write(number);
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        throw new Exception($"Ошибка при создании бинарного файла: {ex.Message}");
-    }
-}
 
     public static int CountOppositePairs(string filePath)
     {
-    if (!File.Exists(filePath))
-    {
-        throw new FileNotFoundException($"Файл '{filePath}' не найден.");
-    }
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Файл '{filePath}' не найден.");
 
-    List<int> numbers = new List<int>();
-    int oppositePairsCount = 0;
-
-    try
-    {
-        // Читаем числа из бинарного файла
+        List<int> numbers = new List<int>();
         using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
         {
-            while (reader.BaseStream.Position != reader.BaseStream.Length)
+            while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
-                int number = reader.ReadInt32();
-                numbers.Add(number);
+                numbers.Add(reader.ReadInt32());
             }
         }
 
-        // Подсчитываем пары противоположных чисел
+        int count = 0;
         for (int i = 0; i < numbers.Count; i++)
         {
             for (int j = i + 1; j < numbers.Count; j++)
             {
                 if (numbers[i] == -numbers[j])
-                {
-                    oppositePairsCount++;
-                }
+                    count++;
             }
         }
-
-        return oppositePairsCount;
-    }
-    catch (Exception ex)
-    {
-        throw new Exception($"Ошибка при обработке бинарного файла: {ex.Message}");
-    }
+        return count;
     }
 
      // Методы для задачи 5
+
+[Serializable]
+public struct BaggageItem
+{
+    public string Name;
+    public int Weight;
+    
+    public BaggageItem(string name, int weight)
+    {
+        Name = name;
+        Weight = weight;
+    }
+}
+
+[Serializable]
+public class PassengerData
+{
+    public List<BaggageItem> Baggage;
+    
+    public PassengerData()
+    {
+        Baggage = new List<BaggageItem>();
+    }
+}
     public static void GeneratePassengersFile(string filePath, int passengerCount, int maxBaggageItems, int maxWeight)
     {
         if (passengerCount <= 0 || maxBaggageItems <= 0 || maxWeight <= 0)
@@ -279,87 +284,58 @@ public static void GenerateBinaryFile(string filePath, int count, int minValue, 
     public static bool HasPassengerWithSingleLightBaggage(string filePath, int maxWeight)
     {
         if (!File.Exists(filePath))
-        {
             throw new FileNotFoundException($"Файл '{filePath}' не найден.");
+
+        List<PassengerData> passengers;
+        XmlSerializer serializer = new XmlSerializer(typeof(List<PassengerData>));
+        
+        using (FileStream fs = new FileStream(filePath, FileMode.Open))
+        {
+            passengers = (List<PassengerData>)serializer.Deserialize(fs);
         }
 
-        try
+        foreach (PassengerData p in passengers)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(List<PassengerData>));
-            List<PassengerData> passengers;
-            
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            {
-                passengers = (List<PassengerData>)serializer.Deserialize(fs);
-            }
-
-            foreach (PassengerData passenger in passengers)
-            {
-                if (passenger.Baggage.Count == 1 && passenger.Baggage[0].Weight < maxWeight)
-                {
-                    return true;
-                }
-            }
-            
-            return false;
+            if (p.Baggage.Count == 1 && p.Baggage[0].Weight < maxWeight)
+                return true;
         }
-        catch (Exception ex)
-        {
-            throw new Exception($"Ошибка при обработке файла пассажиров: {ex.Message}");
-        }
+        return false;
     }
 
 
-public static List<int> MergeOrderedLists(List<int> L1, List<int> L2)
-{
-    List<int> result = new List<int>(L1.Count + L2.Count);
-    int i = 0, j = 0;
-
-    while (i < L1.Count && j < L2.Count)
+    // Методы для задачи 6
+    public static List<int> MergeOrderedLists(List<int> L1, List<int> L2)
     {
-        if (L1[i] <= L2[j])
+        List<int> result = new List<int>();
+        int i = 0, j = 0;
+
+        while (i < L1.Count && j < L2.Count)
         {
-            result.Add(L1[i]);
-            i++;
+            if (L1[i] <= L2[j])
+                result.Add(L1[i++]);
+            else
+                result.Add(L2[j++]);
         }
-        else
+
+        while (i < L1.Count) result.Add(L1[i++]);
+        while (j < L2.Count) result.Add(L2[j++]);
+
+        return result;
+    }
+
+    // Методы для задачи 7
+    public static int CountElementsWithEqualNeighbors(List<int> list)
+    {
+        int count = 0;
+        for (int i = 1; i < list.Count - 1; i++)
         {
-            result.Add(L2[j]);
-            j++;
+            if (list[i-1] == list[i+1])
+                count++;
         }
+        return count;
     }
 
-    // Добавляем оставшиеся элементы
-    while (i < L1.Count)
-    {
-        result.Add(L1[i]);
-        i++;
-    }
-
-    while (j < L2.Count)
-    {
-        result.Add(L2[j]);
-        j++;
-    }
-
-    return result;
-}
-
-public static int CountElementsWithEqualNeighbors(List<int> list)
-{
-    int count = 0;
-
-    for (int i = 1; i < list.Count - 1; i++)
-    {
-        if (list[i - 1] == list[i + 1])
-        {
-            count++;
-        }
-    }
-
-    return count;
-}
-
+// Методы для задачи 8
 public class DishesAnalysisResult
 {
     public List<string> AllVisitors { get; set; }
@@ -367,9 +343,9 @@ public class DishesAnalysisResult
     public List<string> NoVisitors { get; set; }
 }
 
-public static DishesAnalysisResult AnalyzeDishesPopularity(List<string> allDishes, List<List<string>> visitorsOrders)
+public static DishesAnalysisResult AnalyzeDishesPopularity(List<string> allDishes, List<List<string>> orders)
 {
-    var result = new DishesAnalysisResult
+    var result = new DishesAnalysisResult()
     {
         AllVisitors = new List<string>(),
         SomeVisitors = new List<string>(),
@@ -379,32 +355,29 @@ public static DishesAnalysisResult AnalyzeDishesPopularity(List<string> allDishe
     foreach (string dish in allDishes)
     {
         int orderedCount = 0;
-        
-        foreach (var visitorOrder in visitorsOrders)
+        foreach (var visitorOrder in orders)
         {
-            if (visitorOrder.Contains(dish))
+            bool found = false;
+            foreach (string orderedDish in visitorOrder)
             {
-                orderedCount++;
+                if (orderedDish == dish)
+                {
+                    found = true;
+                    break;
+                }
             }
+            if (found) orderedCount++;
         }
 
-        if (orderedCount == visitorsOrders.Count)
-        {
+        if (orderedCount == orders.Count)
             result.AllVisitors.Add(dish);
-        }
         else if (orderedCount > 0)
-        {
             result.SomeVisitors.Add(dish);
-        }
         else
-        {
             result.NoVisitors.Add(dish);
-        }
     }
-
     return result;
 }
-
 public static void CreateTextFile(string filePath)
 {
     using (StreamWriter writer = new StreamWriter(filePath))
@@ -419,84 +392,65 @@ public static void CreateTextFile(string filePath)
     }
 }
 
+// Метод для задачи 9
 public static List<char> FindUniqueConsonants(string filePath)
 {
-    // Множество русских согласных букв
-    HashSet<char> consonants = new HashSet<char>("бвгджзйклмнпрстфхцчшщБВГДЖЗЙКЛМНПРСТФХЦЧШЩ");
-    
-    // Словарь для подсчета: ключ - согласная, значение - количество слов, где она встречается
+    string consonantsStr = "бвгджзйклмнпрстфхцчшщБВГДЖЗЙКЛМНПРСТФХЦЧШЩ";
+    HashSet<char> consonants = new HashSet<char>();
+    foreach (char c in consonantsStr) consonants.Add(c);
+
     Dictionary<char, int> consonantCounts = new Dictionary<char, int>();
-    
-    // Множество всех слов
     HashSet<string> allWords = new HashSet<string>();
-    
-    // Чтение файла и обработка слов
-    using (StreamReader reader = new StreamReader(filePath))
+
+    string[] lines = File.ReadAllLines(filePath);
+    foreach (string line in lines)
     {
-        string line;
-        while ((line = reader.ReadLine()) != null)
+        string[] words = line.Split(new[] { ' ', ',', '.', '!', '?' }, 
+                                 StringSplitOptions.RemoveEmptyEntries);
+        
+        foreach (string word in words)
         {
-            // Разбиваем строку на слова (игнорируем знаки препинания)
-            string[] words = line.Split(new[] { ' ', ',', '.', '!', '?', ';', ':', '-', '(', ')' }, 
-                                     StringSplitOptions.RemoveEmptyEntries);
-            
-            foreach (string word in words)
+            string lowerWord = word.ToLower();
+            if (allWords.Contains(lowerWord)) continue;
+            allWords.Add(lowerWord);
+
+            HashSet<char> wordConsonants = new HashSet<char>();
+            foreach (char c in lowerWord)
             {
-                string lowerWord = word.ToLower();
-                if (allWords.Contains(lowerWord))
-                    continue;
-                    
-                allWords.Add(lowerWord);
-                
-                // Множество согласных в текущем слове (для избежания повторного подсчета в одном слове)
-                HashSet<char> wordConsonants = new HashSet<char>();
-                
-                foreach (char c in lowerWord)
-                {
-                    if (consonants.Contains(c))
-                    {
-                        wordConsonants.Add(c);
-                    }
-                }
-                
-                // Обновляем счетчики для найденных согласных
-                foreach (char consonant in wordConsonants)
-                {
-                    if (consonantCounts.ContainsKey(consonant))
-                    {
-                        consonantCounts[consonant]++;
-                    }
-                    else
-                    {
-                        consonantCounts[consonant] = 1;
-                    }
-                }
+                if (consonants.Contains(c))
+                    wordConsonants.Add(c);
+            }
+
+            foreach (char consonant in wordConsonants)
+            {
+                if (consonantCounts.ContainsKey(consonant))
+                    consonantCounts[consonant]++;
+                else
+                    consonantCounts[consonant] = 1;
             }
         }
     }
-    
-    // Отбираем согласные, которые встретились ровно в одном слове
+
     List<char> result = new List<char>();
     foreach (var pair in consonantCounts)
     {
         if (pair.Value == 1)
-        {
             result.Add(pair.Key);
-        }
     }
-    
-    // Сортируем результат в алфавитном порядке
+
     result.Sort();
-    
     return result;
 }
 
+// Метод для задачи 10
+
+
 public static List<Participant> DetermineWinners(List<Participant> participants)
 {
-    // Сортируем участников по убыванию общего балла
-    for (int i = 0; i < participants.Count - 1; i++)
+    // Сортировка пузырьком
+    for (int i = 0; i < participants.Count-1; i++)
     {
-        for (int j = i + 1; j < participants.Count; j++)
+        for (int j = i+1; j < participants.Count; j++)
         {
             if (participants[j].TotalScore > participants[i].TotalScore)
             {
@@ -510,19 +464,15 @@ public static List<Participant> DetermineWinners(List<Participant> participants)
     if (participants.Count == 0)
         return new List<Participant>();
 
-    // Находим минимальный балл среди топ-3
-    int thirdPlaceScore = participants.Count >= 3 ? 
+    int thirdScore = participants.Count >= 3 ? 
         participants[2].TotalScore : 
-        participants[participants.Count - 1].TotalScore;
+        participants[participants.Count-1].TotalScore;
 
-    // Отбираем победителей
     List<Participant> winners = new List<Participant>();
-    foreach (var p in participants)
+    foreach (Participant p in participants)
     {
-        if (p.TotalScore >= thirdPlaceScore)
-        {
+        if (p.TotalScore >= thirdScore)
             winners.Add(p);
-        }
     }
 
     return winners;
