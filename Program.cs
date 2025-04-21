@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 class Program
 {   static void Main()
@@ -6,16 +6,16 @@ class Program
         while (true)
         {
             Console.WriteLine("\nВыберите действие:");
-            Console.WriteLine("1 - Решить задачу 1 (работа с файлом чисел)");
-            Console.WriteLine("2 - Решить задачу 2 (поиск минимального элемента)");
-            Console.WriteLine("3 - Решить задачу 3 (фильтрация строк по первому символу)");
-            Console.WriteLine("4 - Решить задачу 4 (поиск противоположных чисел в бинарном файле)");
-            Console.WriteLine("5 - Решить задачу 5 (поиск пассажира с легким багажом)");
-            Console.WriteLine("6 - Решить задачу 6 (слияние упорядоченных списков)");
-            Console.WriteLine("7 - Решить задачу 7 (элементы с равными соседями)");
-            Console.WriteLine("8 - Решить задачу 8 (анализ популярности блюд)");
-            Console.WriteLine("9 - Решить задачу 9 (уникальные согласные буквы)");
-            Console.WriteLine("10 - Решить задачу 10 (результаты многоборья)");
+            Console.WriteLine("1 - Разность между максимальным и минимальным");
+            Console.WriteLine("2 - Поиск минимального элемента");
+            Console.WriteLine("3 - Фильтрация строк по первому символу");
+            Console.WriteLine("4 - Поиск противоположных чисел в бинарном файле");
+            Console.WriteLine("5 - Поиск пассажира с легким багажом");
+            Console.WriteLine("6 - Слияние упорядоченных списков");
+            Console.WriteLine("7 - Элементы с равными соседями");
+            Console.WriteLine("8 - Анализ популярности блюд");
+            Console.WriteLine("9 - Поиск уникальных согласных букв");
+            Console.WriteLine("10 - Результаты многоборья");
             Console.WriteLine("0 - Выход");
             
             int choice = InputValidator.GetIntInput("Введите номер действия: ", 0, 10);
@@ -41,7 +41,6 @@ class Program
     static void SolveTask1()
     {
         Console.WriteLine("\n--- Задача 1 ---");
-        Console.WriteLine("В текстовом файле хранятся целые числа по одному в строке.");
         Console.WriteLine("Необходимо найти разность максимального и минимального элементов.");
         
         string filePath = "numbers1.txt";
@@ -62,7 +61,6 @@ class Program
     static void SolveTask2()
     {
         Console.WriteLine("\n--- Задача 2 ---");
-        Console.WriteLine("В текстовом файле хранятся целые числа по несколько в строке.");
         Console.WriteLine("Необходимо найти минимальный элемент.");
         
         string filePath = "numbers2.txt";
@@ -84,8 +82,7 @@ class Program
    static void SolveTask3()
 {
     Console.WriteLine("\n--- Задача 3 ---");
-    Console.WriteLine("В текстовом файле хранится текст. Необходимо переписать в другой файл");
-    Console.WriteLine("строки, начинающиеся с заданного символа.");
+    Console.WriteLine("Необходимо переписать в другой файл строки, начинающиеся с заданного символа.");
     
     string sourceFilePath = "text_source.txt";
     string resultFilePath = "text_result.txt";
@@ -106,9 +103,8 @@ class Program
 static void SolveTask4()
 {
     Console.WriteLine("\n--- Задача 4 ---");
-    Console.WriteLine("В бинарном файле хранятся числовые данные. Необходимо подсчитать");
-    Console.WriteLine("количество пар противоположных чисел среди компонент файла.");
-    
+    Console.WriteLine("Подсчет количеств пар противоположных чисел среди компонент файла.");
+
     string filePath = "numbers_binary.dat";
     
     // Заполняем файл случайными числами
@@ -153,11 +149,9 @@ static void SolveTask6()
 {
     Console.WriteLine("\n--- Задача 6 ---");
     Console.WriteLine("Вставка элементов упорядоченного списка L2 в упорядоченный список L1");
-    Console.WriteLine("без нарушения упорядоченности L1.");
-
     // Получаем списки от пользователя
-    List<int> L1 = InputValidator.GetOrderedList("Введите элементы упорядоченного списка L1 (через пробел): ");
-    List<int> L2 = InputValidator.GetOrderedList("Введите элементы упорядоченного списка L2 (через пробел): ");
+    List<int> L1 = InputValidator.GetOrderedList("Введите элементы списка L1 (через пробел): ");
+    List<int> L2 = InputValidator.GetOrderedList("Введите элементы списка L2 (через пробел): ");
 
     // Выполняем слияние
     List<int> mergedList = TaskSolver.MergeOrderedLists(L1, L2);
@@ -185,8 +179,6 @@ static void SolveTask7()
 static void SolveTask8()
 {
     Console.WriteLine("\n--- Задача 8 ---");
-    Console.WriteLine("Анализ популярности блюд среди посетителей.");
-
     // Получаем список всех блюд
     List<string> allDishes = InputValidator.GetStringList("Введите все блюда кафе (через запятую): ");
     
@@ -238,8 +230,6 @@ static void SolveTask9()
 static void SolveTask10()
 {
     Console.WriteLine("\n--- Задача 10 ---");
-    Console.WriteLine("Определение победителей школьного многоборья.");
-
     // Получаем данные об участниках
     int n = InputValidator.GetIntInput("Введите количество участников: ", 1, 100);
     List<Participant> participants = new List<Participant>();
